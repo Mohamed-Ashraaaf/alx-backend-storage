@@ -20,7 +20,6 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
-
     @staticmethod
     def count_calls(method: Callable) -> Callable:
         """
@@ -34,11 +33,10 @@ class Cache:
         """
         attribute = "_cache:count:" + method.__qualname__
 
-
         @functools.wraps(method)
         def wrapper(self, *args, **kwargs):
             """
-            Wrapper function that increments the call count and calls the original method.
+            Wrapper function that increments the call count
 
             Args:
                 self: The instance itself.
@@ -53,7 +51,6 @@ class Cache:
 
         return wrapper
 
-
     @staticmethod
     def call_history(method: Callable) -> Callable:
         """
@@ -67,7 +64,6 @@ class Cache:
         """
         input_key = "{}:inputs".format(method.__qualname__)
         output_key = "{}:outputs".format(method.__qualname__)
-
 
         @functools.wraps(method)
         def wrapper(self, *args, **kwargs):
@@ -90,7 +86,6 @@ class Cache:
 
         return wrapper
 
-
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
         Store the input data in Redis and return the generated key.
@@ -106,23 +101,21 @@ class Cache:
             self._redis.set(key, data)
         return key
 
-
     def get(self, key: str, fn: Callable = None) -> Union[str, bytes, int]:
         """
-        Retrieve data from Redis based on the key and apply the optional conversion function.
+        Retrieve data from Redis based on the key
 
         Args:
             key (str): Key to retrieve data from Redis.
-            fn (Callable, optional): Callable to convert data back to the desired format.
+            fn (Callable, optional): Callable to convert data back
 
         Returns:
-            Union[str, bytes, int]: Retrieved data, possibly converted by fn.
+            Union[str, bytes, int]: Retrieved data, possibly converted
         """
         data = self._redis.get(key)
         if data and fn:
             return fn(data)
         return data
-
 
     def get_str(self, key: str) -> Union[str, bytes, int]:
         """
@@ -136,7 +129,6 @@ class Cache:
         """
         return self.get(key, fn=lambda d: d.decode("utf-8"))
 
-
     def get_int(self, key: str) -> Union[str, bytes, int]:
         """
         Retrieve data from Redis and automatically convert it to an integer.
@@ -149,30 +141,27 @@ class Cache:
         """
         return self.get(key, fn=int)
 
-
     def replay(self, method: Callable):
-    """
-    Display the history of calls for a particular function.
-
-    Args:
-        method (Callable): The method to replay.
-
-    Returns:
+        """
+        Display the history of calls for a particular function.
+        Args:
+        method (Callable): The method to replay
+        Returns:
         None
-    """
-    qualified_name = method.__qualname__
-    input_key = "{}:inputs".format(qualified_name)
-    output_key = "{}:outputs".format(qualified_name)
+        """
+        qualified_name = method.__qualname__
+        input_key = "{}:inputs".format(qualified_name)
+        output_key = "{}:outputs".format(qualified_name)
 
-    inputs = self._redis.lrange(input_key, 0, -1)
-    outputs = self._redis.lrange(output_key, 0, -1)
+        inputs = self._redis.lrange(input_key, 0, -1)
+        outputs = self._redis.lrange(output_key, 0, -1)
 
-    print("{} was called {} times:".format(qualified_name, len(inputs)))
+        print("{} was called {} times:".format(qualified_name, len(inputs)))
 
-    for input_data, output_data in zip(inputs, outputs):
-        input_args = eval(input_data)
-        print("{}{} -> {}".format(
-            qualified_name,
-            input_args,
-            output_data.decode("utf-8")
-        ))
+        for input_data, output_data in zip(inputs, outputs):
+            input_args = eval(input_data)
+            print("{}{} -> {}".format(
+                qualified_name,
+                input_args,
+                output_data.decode("utf-8")
+                ))
