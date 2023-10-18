@@ -2,7 +2,7 @@
 """ Web page retrieval and caching """
 
 import redis
-import requests
+import http.client
 from typing import Callable
 from functools import wraps
 
@@ -20,17 +20,19 @@ def get_page(url: str) -> str:
         return cached_content.decode('utf-8')
 
     try:
-        # Use the requests module to make an HTTP GET request
-        response = requests.get(f"https://{url}")
+        # Create an HTTP connection
+        conn = http.client.HTTPSConnection(url)
+        conn.request("GET", "/")
+        response = conn.getresponse()
 
-        if response.status_code == 200:
+        if response.status == 200:
             # If the request was successful
-            content = response.text
+            content = response.read().decode('utf-8')
             redis_client.setex(url, 10, content)
             return content
         else:
             # Handle non-200 status codes or request errors
-            return f"Failed to fetch from {url} (Status: {response.status_code})"
+            return f"Failed to fetch from {url} (Status: {response.status})"
     except Exception as e:
         return f"Error while fetching content from {url}: {str(e)}"
 
