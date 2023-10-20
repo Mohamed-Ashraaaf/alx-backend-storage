@@ -51,6 +51,10 @@ def count_calls(fn: Callable) -> Callable:
 
 # Example usage
 if __name__ == "__main__":
-    url = "slowwly.robertomurray.co.uk"
+    url = "google.com"
     content = get_page(url)
     print(content)
+
+    call_key = f"count:{get_page.__qualname__}"
+    count = redis_client.get(call_key)
+    print(count)
