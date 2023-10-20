@@ -51,7 +51,7 @@ def count_calls(fn: Callable) -> Callable:
 
 # Example usage
 if __name__ == "__main__":
-    url = "google.com"
+    url = "http://slowwly.robertomurray.co.uk"
     content = get_page(url)
     print(content)
 
